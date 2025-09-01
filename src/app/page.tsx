@@ -40,8 +40,7 @@ export default function Home() {
 
   return (
     <>
-      {/* 1. Carousel Hero Section with reduced height */}
-      {/* FIX: Changed h-screen to h-[60vh] to reduce height */}
+      {/* 1. Carousel Hero Section */}
       <div className="w-full h-[60vh] relative bg-gray-300">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
@@ -68,10 +67,10 @@ export default function Home() {
 
       {/* 2. Main Content Wrapper */}
       <div className="font-sans w-full flex justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white">
-        <main className="flex flex-col gap-10 items-center w-full max-w-7xl">
+        <main className="flex flex-col gap-16 items-center w-full max-w-7xl">
           
           {/* KATEGORI Section */}
-          <section className="w-full flex flex-col items-center mb-8">
+          <section className="w-full flex flex-col items-center">
             <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88] text-center mb-6">
               KATEGORI
             </h2>
@@ -94,7 +93,7 @@ export default function Home() {
 
           {/* TERLARIS Section */}
           <section className="w-full flex flex-col items-center">
-            <div className="flex justify-between items-center w-full max-w-full mb-6">
+            <div className="flex justify-between items-center w-full mb-6">
               <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
                 TERLARIS
               </h2>
@@ -103,10 +102,47 @@ export default function Home() {
               </Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
-              {/* Placeholder product cards */}
               {[...Array(5)].map((_, index) => (
                 <div key={index} className="bg-gray-200 rounded-lg shadow-sm w-full aspect-square flex items-center justify-center">
                   <span className="text-gray-500 text-sm">Produk {index + 1}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* NEW ARRIVALS Section */}
+          <section className="w-full flex flex-col items-center">
+            <div className="flex justify-between items-center w-full mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
+                NEW ARRIVALS
+              </h2>
+              <Link href="/product?sort=new-arrivals" className="text-sm font-semibold text-gray-600 hover:underline">
+                LIHAT SEMUA
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="bg-gray-200 rounded-lg shadow-sm w-full aspect-square flex items-center justify-center">
+                  <span className="text-gray-500 text-sm">Produk {index + 1}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* BLOGS Section */}
+          <section className="w-full flex flex-col items-center">
+            <div className="flex justify-between items-center w-full mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
+                BLOGS
+              </h2>
+              <Link href="/blog" className="text-sm font-semibold text-gray-600 hover:underline">
+                LIHAT SEMUA
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="bg-gray-200 rounded-lg shadow-sm w-full aspect-[4/3] flex items-center justify-center">
+                  <span className="text-gray-500 text-sm">Blog Post {index + 1}</span>
                 </div>
               ))}
             </div>
