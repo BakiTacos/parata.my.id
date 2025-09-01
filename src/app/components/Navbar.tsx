@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Navbar() {
   const [productsDropdown, setProductsDropdown] = useState(false);
@@ -52,7 +53,13 @@ export default function Navbar() {
             </div>
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-2xl font-bold text-[#333333] hover:text-[#A5D6A7] transition-colors">
-                SNY
+                <Image
+                      src="https://github.com/BakiTacos/image-host/blob/main/PARATA/LOGO/PA%20NORMAL.png?raw=true"
+                      alt="parata-logo"
+                      width={40}
+                      height={40}
+                      className="object-cover"
+                    />
               </Link>
             </div>
 
@@ -111,6 +118,38 @@ export default function Navbar() {
             >
               Produk
             </Link>
+            {/* Products Dropdown for mobile */}
+            <div className="py-2">
+              <button
+                onClick={() => setProductsDropdown(!productsDropdown)}
+                className="w-full flex justify-between items-center text-left px-3 py-2 rounded-md text-base font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
+              >
+                Kategori
+                <svg className={`h-4 w-4 transform transition-transform duration-200 ${productsDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {productsDropdown && (
+                <div className="pl-4 mt-2 space-y-1">
+                  {['Dapur', 'Ruang Tamu', 'Kamar Tidur', 'Kamar Mandi'].map((label, index) => {
+                    const slug = label.toLowerCase().replace(/\s+/g, '-');
+                    return (
+                      <Link
+                        key={index}
+                        href={`/product?category=${slug}`}
+                        className="block px-3 py-2 rounded-md text-sm text-[#333333] hover:bg-[#A5D6A7] hover:text-white"
+                        onClick={() => {
+                          setProductsDropdown(false);
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
