@@ -57,22 +57,21 @@ export default function Navbar() {
             </div>
 
             <div className="hidden sm:ml-6 sm:flex sm:space-x-1">
-              <Link
-                href="/"
+                <Link
+                href="/product"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
-                  isActive('/') ? 'text-[#A5D6A7] font-semibold' : 'text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50'
+                  isActive('/article') ? 'text-[#A5D6A7] font-semibold' : 'text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50'
                 }`}
               >
-                Home
+                Produk
               </Link>
-
               {/* Products Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setProductsDropdown((prev) => !prev)}
                   className="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
                 >
-                  Produk
+                  Kategori
                   <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -97,28 +96,6 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-
-              <Link
-                href="/article"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
-                  isActive('/article') ? 'text-[#A5D6A7] font-semibold' : 'text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50'
-                }`}
-              >
-                Artikel
-              </Link>
-
-              <Link
-                href="/#about-us"
-                className="text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Tentang Kami
-              </Link>
-              <Link
-                href="/#footer"
-                className="text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Kontak
-              </Link>
             </div>
           </div>
         </div>
@@ -126,44 +103,13 @@ export default function Navbar() {
         {/* Menu Mobile */}
         <div className={`sm:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              href="/"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/') ? 'text-[#A5D6A7] bg-gray-50' : 'text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50'
-              }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Home
-            </Link>
+            
             <Link
               href="/product"
               className="block px-3 py-2 rounded-md text-base font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
               onClick={() => setMobileMenuOpen(false)}
             >
               Produk
-            </Link>
-            <Link
-              href="/article"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/article') ? 'text-[#A5D6A7] bg-gray-50' : 'text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50'
-              }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Artikel
-            </Link>
-            <Link
-              href="/#about-us"
-              className="block px-3 py-2 rounded-md text-base font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Tentang Kami
-            </Link>
-            <Link
-              href="/#footer"
-              className="block px-3 py-2 rounded-md text-base font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Kontak
             </Link>
           </div>
         </div>
