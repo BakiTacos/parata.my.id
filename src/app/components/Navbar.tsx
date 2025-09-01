@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 export default function Navbar() {
   const [productsDropdown, setProductsDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null); // Note: This ref is now only used for the desktop view
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -19,17 +19,17 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setProductsDropdown(false);
-      }
-    };
+    // This ensures the category dropdown closes when the main mobile menu closes.
+    if (!mobileMenuOpen) {
+      setProductsDropdown(false);
+    }
+  }, [mobileMenuOpen]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  // *** FIX: REMOVED CONFLICTING useEffect ***
+  // The useEffect that listened for "mousedown" to handle clicking outside
+  // has been removed as it was interfering with the mobile menu's state.
+  // The dropdown is now closed by toggling the button, selecting a link,
+  // or closing the main mobile menu.
 
   return (
     <nav className="bg-[var(--primary)] shadow-lg fixed top-0 left-0 right-0 z-50 transition-all duration-300">
