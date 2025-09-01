@@ -26,7 +26,6 @@ export default function Home() {
     },
   ];
 
-  // Category data for the new section
   const categories = [
     { name: 'Dapur', slug: 'dapur' },
     { name: 'Ruang Tamu', slug: 'ruang-tamu' },
@@ -92,8 +91,8 @@ export default function Home() {
           </section>
 
           {/* TERLARIS Section */}
-          <section className="w-full flex flex-col items-center">
-            <div className="flex justify-between items-center w-full mb-6">
+          <section className="w-full flex flex-col"> {/* Removed items-center to allow left-alignment of title */}
+            <div className="flex justify-between items-center w-full mb-6 px-2 sm:px-0">
               <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
                 TERLARIS
               </h2>
@@ -101,18 +100,22 @@ export default function Home() {
                 LIHAT SEMUA
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
-              {[...Array(5)].map((_, index) => (
-                <div key={index} className="bg-gray-200 rounded-lg shadow-sm w-full aspect-square flex items-center justify-center">
-                  <span className="text-gray-500 text-sm">Produk {index + 1}</span>
-                </div>
-              ))}
+            {/* Horizontal scroll container for mobile */}
+            <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
+              {/* Flex row on mobile, grid on larger screens */}
+              <div className="flex flex-row space-x-4 px-2 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4 sm:space-x-0 sm:px-0">
+                {[...Array(5)].map((_, index) => (
+                  <div key={index} className="flex-shrink-0 w-[45%] sm:w-full bg-gray-200 rounded-lg shadow-sm aspect-square flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">Produk {index + 1}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
           {/* NEW ARRIVALS Section */}
-          <section className="w-full flex flex-col items-center">
-            <div className="flex justify-between items-center w-full mb-6">
+          <section className="w-full flex flex-col">
+            <div className="flex justify-between items-center w-full mb-6 px-2 sm:px-0">
               <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
                 NEW ARRIVALS
               </h2>
@@ -120,18 +123,20 @@ export default function Home() {
                 LIHAT SEMUA
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
-              {[...Array(5)].map((_, index) => (
-                <div key={index} className="bg-gray-200 rounded-lg shadow-sm w-full aspect-square flex items-center justify-center">
-                  <span className="text-gray-500 text-sm">Produk {index + 1}</span>
-                </div>
-              ))}
+            <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
+              <div className="flex flex-row space-x-4 px-2 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4 sm:space-x-0 sm:px-0">
+                {[...Array(5)].map((_, index) => (
+                   <div key={index} className="flex-shrink-0 w-[45%] sm:w-full bg-gray-200 rounded-lg shadow-sm aspect-square flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">Produk {index + 1}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
           {/* BLOGS Section */}
-          <section className="w-full flex flex-col items-center">
-            <div className="flex justify-between items-center w-full mb-6">
+          <section className="w-full flex flex-col">
+            <div className="flex justify-between items-center w-full mb-6 px-2 sm:px-0">
               <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
                 BLOGS
               </h2>
@@ -139,12 +144,14 @@ export default function Home() {
                 LIHAT SEMUA
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-              {[...Array(3)].map((_, index) => (
-                <div key={index} className="bg-gray-200 rounded-lg shadow-sm w-full aspect-[4/3] flex items-center justify-center">
-                  <span className="text-gray-500 text-sm">Blog Post {index + 1}</span>
-                </div>
-              ))}
+            <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
+              <div className="flex flex-row space-x-4 px-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 sm:space-x-0 sm:px-0">
+                {[...Array(3)].map((_, index) => (
+                   <div key={index} className="flex-shrink-0 w-[70%] sm:w-full bg-gray-200 rounded-lg shadow-sm aspect-[4/3] flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">Blog Post {index + 1}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
