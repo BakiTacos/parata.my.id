@@ -35,6 +35,7 @@ export default function Navbar() {
     <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          {/* Bagian Kiri: Logo & Navigasi Utama */}
           <div className="flex items-center">
             {/* Tombol menu mobile */}
             <div className="sm:hidden -ml-2 mr-2">
@@ -51,6 +52,7 @@ export default function Navbar() {
                 </svg>
               </button>
             </div>
+            {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-2xl font-bold text-[#333333] hover:text-[#A5D6A7] transition-colors">
                 <Image
@@ -62,7 +64,7 @@ export default function Navbar() {
                     />
               </Link>
             </div>
-
+            {/* Menu Desktop */}
             <div className="hidden sm:ml-6 sm:flex sm:space-x-1">
                 <Link
                 href="/product"
@@ -72,7 +74,6 @@ export default function Navbar() {
               >
                 Produk
               </Link>
-              {/* Products Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setProductsDropdown((prev) => !prev)}
@@ -87,7 +88,7 @@ export default function Navbar() {
                   <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
                     <div className="py-1">
                       {['Dapur', 'Ruang Tamu', 'Kamar Tidur', 'Kamar Mandi'].map((label, index) => {
-                        const slug = label.toLowerCase().replace(/\s+/g, '-'); // "Ruang Tamu" → "ruang-tamu"
+                        const slug = label.toLowerCase().replace(/\s+/g, '-');
                         return (
                           <Link
                             key={index}
@@ -105,12 +106,33 @@ export default function Navbar() {
               </div>
             </div>
           </div>
+
+          {/* Bagian Kanan: Aksi Pengguna (Keranjang & Profil) */}
+          <div className="flex items-center space-x-2">
+            {/* Ikon Shopping Cart */}
+            <Link
+              href="/cart"
+              className="p-2 rounded-md text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-100 transition-colors"
+              aria-label="Shopping Cart"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </Link>
+
+            {/* Link Teks Masuk/Daftar */}
+            <Link
+              href="/auth/login"
+              className="hidden sm:flex items-center px-3 py-2 rounded-md text-sm font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50 transition-colors"
+            >
+              MASUK / DAFTAR
+            </Link>
+          </div>
         </div>
 
         {/* Menu Mobile */}
         <div className={`sm:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
           <div className="px-2 pt-2 pb-3 space-y-1">
-            
             <Link
               href="/product"
               className="block px-3 py-2 rounded-md text-base font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
@@ -118,7 +140,6 @@ export default function Navbar() {
             >
               Produk
             </Link>
-            {/* Products Dropdown for mobile */}
             <div className="py-2">
               <button
                 onClick={() => setProductsDropdown(!productsDropdown)}
@@ -150,6 +171,18 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+            
+            {/* Link Login/Daftar di Mobile (Hanya Teks) */}
+            <div className="border-t border-gray-200 pt-3">
+              <Link
+                href="/auth/login"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#333333] hover:text-[#A5D6A7] hover:bg-gray-50"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Masuk / Daftar
+              </Link>
+            </div>
+
           </div>
         </div>
       </div>
