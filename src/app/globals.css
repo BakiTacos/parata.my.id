@@ -3,6 +3,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Warna baru ditambahkan di sini */
+  --primary: #FFFFFF;
+  --secondary: #9CAF88;
 }
 
 @theme inline {
@@ -16,6 +20,12 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* Anda mungkin ingin menyesuaikan warna primer & sekunder untuk dark mode */
+    /* Contoh:
+    --primary: #0a0a0a;
+    --secondary: #A9C29A;
+    */
   }
 }
 
