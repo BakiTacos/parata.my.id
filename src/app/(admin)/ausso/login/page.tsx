@@ -5,7 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase'; // <-- IMPORT auth directly
+import { auth } from '@/lib/firebase';
+import { FirebaseError } from 'firebase/app'; // <-- 1. Import FirebaseError
 import { Loader2 } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -14,8 +15,6 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  
-  // REMOVED: const auth = getAuth(firebaseApp);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +22,6 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // The rest of the function remains the same
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
       const response = await fetch('/api/auth/session-login', {
@@ -35,9 +33,18 @@ export default function AdminLogin() {
         throw new Error('Failed to create session');
       }
       router.push('/admin');
-    } catch (err: any) {
-      console.error("Firebase Auth Error:", err.code, err.message); // More detailed console log
-      setError('Login failed. Please double-check your credentials.');
+    } catch (err) { // <-- 2. Removed ': any'
+      // 3. Added type checking for the error
+      if (err instanceof FirebaseError) {
+        console.error("Firebase Auth Error:", err.code, err.message);
+        setError('Login failed. Please check your credentials.');
+      } else if (err instanceof Error) {
+        console.error("Generic Error:", err.message);
+        setError(err.message); // Show other errors like "Failed to create session"
+      } else {
+        console.error("An unexpected error occurred:", err);
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
