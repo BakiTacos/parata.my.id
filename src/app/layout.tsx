@@ -26,13 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* 1. Add flex classes to the body */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <Navbar />
-        {/* 2. Wrap children in a <main> tag that grows */}
-        <main className="flex-1">{children}</main>
+        {/* FIX: Added pt-16 to offset the fixed navbar's height */}
+        <main className="flex-1 pt-16">{children}</main>
         <Footer />
       </body>
     </html>

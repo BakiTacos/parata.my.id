@@ -26,6 +26,7 @@ export default function Home() {
     },
   ];
 
+  // Category data for the new section
   const categories = [
     { name: 'Dapur', slug: 'dapur' },
     { name: 'Ruang Tamu', slug: 'ruang-tamu' },
@@ -91,7 +92,7 @@ export default function Home() {
           </section>
 
           {/* TERLARIS Section */}
-          <section className="w-full flex flex-col"> {/* Removed items-center to allow left-alignment of title */}
+          <section className="w-full flex flex-col">
             <div className="flex justify-between items-center w-full mb-6 px-2 sm:px-0">
               <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
                 TERLARIS
@@ -100,9 +101,7 @@ export default function Home() {
                 LIHAT SEMUA
               </Link>
             </div>
-            {/* Horizontal scroll container for mobile */}
             <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
-              {/* Flex row on mobile, grid on larger screens */}
               <div className="flex flex-row space-x-4 px-2 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4 sm:space-x-0 sm:px-0">
                 {[...Array(5)].map((_, index) => (
                   <div key={index} className="flex-shrink-0 w-[45%] sm:w-full bg-gray-200 rounded-lg shadow-sm aspect-square flex items-center justify-center">
@@ -119,7 +118,8 @@ export default function Home() {
               <h2 className="text-xl sm:text-2xl font-bold tracking-wider text-[#9CAF88]">
                 NEW ARRIVALS
               </h2>
-              <Link href="/product?sort=new-arrivals" className="text-sm font-semibold text-gray-600 hover:underline">
+              {/* FIX: Link updated to sort by 'terbaru' */}
+              <Link href="/product?sort=terbaru" className="text-sm font-semibold text-gray-600 hover:underline">
                 LIHAT SEMUA
               </Link>
             </div>
