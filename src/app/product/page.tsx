@@ -55,7 +55,8 @@ export default function Product() {
 
   // --- SORTING LOGIC ---
   const sortedProducts = useMemo(() => {
-    let sorted = [...products];
+    // FIX: Changed 'let' to 'const' as 'sorted' is never reassigned.
+    const sorted = [...products];
     switch (sortOption) {
       case 'terlaris': // New case for Best Sellers
         sorted.sort((a, b) => b.productSold - a.productSold);
@@ -137,7 +138,7 @@ export default function Product() {
                 className="border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-[#9CAF88] focus:border-transparent"
               >
                 <option value="terbaru">Terbaru (Reset)</option>
-                <option value="terlaris">Terlaris</option> {/* Added Terlaris option */}
+                <option value="terlaris">Terlaris</option>
                 <option value="harga-terendah">Harga Terendah</option>
                 <option value="harga-tertinggi">Harga Tertinggi</option>
               </select>

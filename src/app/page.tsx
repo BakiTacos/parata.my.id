@@ -1,6 +1,5 @@
 'use client'; // This is required for the carousel component
 
-import Image from "next/image";
 import Link from 'next/link'; // Make sure to import Link
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
