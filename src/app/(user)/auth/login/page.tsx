@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import { Loader2 } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase auth function
+import { auth } from '../../../../lib/firebase'; // Import your Firebase auth instance
 
 export default function Login() {
   // State for form inputs, loading, and errors
@@ -11,25 +14,45 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter(); // Initialize the router
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle form submission with Firebase
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // --- Placeholder for your authentication logic ---
-    // In a real application, you would make an API call here.
-    setTimeout(() => {
-      if (email === "user@example.com" && password === "password") {
-        console.log("Login successful");
-        // Redirect the user, e.g., router.push('/dashboard')
-      } else {
-        setError('Email atau password salah. Silakan coba lagi.');
+    try {
+      // Sign in the user with Firebase
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log("Login successful");
+      // Redirect to the home on success
+      router.push('/'); 
+    } catch (err: any) {
+      // Handle Firebase authentication errors
+      let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+      switch (err.code) {
+        case 'auth/invalid-credential':
+          errorMessage = 'Email atau password salah. Silakan periksa kembali.';
+          break;
+        case 'auth/user-not-found':
+          errorMessage = 'Tidak ada akun yang ditemukan dengan email ini.';
+          break;
+        case 'auth/wrong-password':
+          errorMessage = 'Email atau password salah. Silakan periksa kembali.';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Akses ke akun ini telah dinonaktifkan sementara karena terlalu banyak upaya login yang gagal.';
+          break;
+        default:
+          console.error("Firebase Auth Error:", err);
+          break;
       }
+      setError(errorMessage);
+    } finally {
+      // Stop the loading indicator
       setLoading(false);
-    }, 1500);
-    // --- End of placeholder ---
+    }
   };
 
   return (

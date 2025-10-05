@@ -1,21 +1,20 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp, getApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth"; // <-- Import getAuth
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC3mw2U2cATVygSDWioYZGCF2IC3vcP9kE",
-  authDomain: "parata-my-id.firebaseapp.com",
-  projectId: "parata-my-id",
-  storageBucket: "parata-my-id.appspot.com", // Corrected storage bucket domain
-  messagingSenderId: "753565829461",
-  appId: "1:753565829461:web:a1f5323f8a976531e8c7dc",
-  measurementId: "G-E4ZR77TFBQ"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase App (ensure it's only initialized once)
+// Initialize Firebase
+// We check if an app is already initialized to avoid errors during hot-reloading.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firebase Authentication and export it
-export const firebaseApp = app;
-export const auth = getAuth(app); // <-- Initialize Auth here and export it
+// Export the auth instance
+export const auth = getAuth(app);

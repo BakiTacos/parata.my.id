@@ -4,37 +4,41 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, MailCheck } from 'lucide-react';
 import Image from 'next/image';
+import { sendPasswordResetEmail } from 'firebase/auth'; // 👈 Impor fungsi Firebase
+import { auth } from '../../../../lib/firebase'; // 👈 Pastikan path ini benar
 
 export default function ForgotPassword() {
-  // State for form input, loading, submission status, and errors
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fungsi handleSubmit yang sudah diperbarui
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // --- Placeholder for your password reset logic ---
-    // In a real application, you would make an API call here to send a reset email.
-    setTimeout(() => {
-      console.log("Password reset request for:", email);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setSubmitted(true);
+    } catch (err: any) {
+      let errorMessage = 'Gagal mengirim email. Silakan coba lagi.';
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = 'Email yang Anda masukkan tidak terdaftar.';
+      } else {
+        console.error("Firebase Error:", err);
+      }
+      setError(errorMessage);
+    } finally {
       setLoading(false);
-      setSubmitted(true); // Switch to the confirmation view
-    }, 1500);
-    // --- End of placeholder ---
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
-        
-        {/* Conditional rendering: Show confirmation or the form */}
         {submitted ? (
-          // --- Confirmation View ---
           <div className="text-center">
             <MailCheck size={60} className="mx-auto text-[#9CAF88]" />
             <h2 className="mt-4 text-2xl font-bold text-gray-800">
@@ -52,9 +56,7 @@ export default function ForgotPassword() {
             </Link>
           </div>
         ) : (
-          // --- Form View ---
           <>
-            {/* Header */}
             <div className="text-center">
                <Link href="/">
                 <Image
@@ -72,10 +74,7 @@ export default function ForgotPassword() {
                 Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang password.
               </p>
             </div>
-
-            {/* Forgot Password Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Input */}
               <div>
                 <label
                   htmlFor="email"
@@ -94,13 +93,9 @@ export default function ForgotPassword() {
                   className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CAF88] focus:border-transparent"
                 />
               </div>
-
-              {/* Error Message */}
               {error && (
                 <p className="text-sm text-red-600 text-center">{error}</p>
               )}
-
-              {/* Submit Button */}
               <div>
                 <button
                   type="submit"
@@ -115,8 +110,6 @@ export default function ForgotPassword() {
                 </button>
               </div>
             </form>
-
-            {/* Back to Login Link */}
             <p className="text-sm text-center text-gray-500">
               Ingat password Anda?{' '}
               <Link
