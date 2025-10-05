@@ -1,6 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { sendPasswordResetEmail } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
