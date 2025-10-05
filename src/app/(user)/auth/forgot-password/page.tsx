@@ -4,8 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, MailCheck } from 'lucide-react';
 import Image from 'next/image';
-import { sendPasswordResetEmail } from 'firebase/auth'; // 👈 Impor fungsi Firebase
-import { auth } from '../../../../lib/firebase'; // 👈 Pastikan path ini benar
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../../../lib/firebase';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,6 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Fungsi handleSubmit yang sudah diperbarui
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -22,12 +21,20 @@ export default function ForgotPassword() {
     try {
       await sendPasswordResetEmail(auth, email);
       setSubmitted(true);
-    } catch (err: any) {
+    } catch (error: unknown) { // ✅ Catch error as 'unknown'
       let errorMessage = 'Gagal mengirim email. Silakan coba lagi.';
-      if (err.code === 'auth/user-not-found') {
-        errorMessage = 'Email yang Anda masukkan tidak terdaftar.';
+
+      // ✅ Safely check the error's structure before using it
+      if (error && typeof error === 'object' && 'code' in error) {
+        const err = error as { code: string };
+        if (err.code === 'auth/user-not-found') {
+          errorMessage = 'Email yang Anda masukkan tidak terdaftar.';
+        } else {
+          console.error("Firebase Error:", err);
+        }
       } else {
-        console.error("Firebase Error:", err);
+        // Handle cases where the error is not the expected object
+        console.error("An unexpected error occurred:", error);
       }
       setError(errorMessage);
     } finally {
