@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // 👈 Impor useRouter
+import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-// 👇 Impor fungsi-fungsi Firebase yang dibutuhkan
 import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
-import { auth } from '../../../../lib/firebase'; // 👈 Pastikan path ini benar
+// 👇 1. Impor 'doc' dan 'setDoc' dari firestore
+import { doc, setDoc } from 'firebase/firestore'; 
+// 👇 2. Impor 'auth' dan 'db' dari konfigurasi firebase Anda
+import { auth, db } from '../../../../lib/firebase'; 
 
 export default function Register() {
   // State for form inputs, loading, and errors
@@ -20,9 +22,8 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter(); // 👈 Inisialisasi router
+  const router = useRouter(); 
 
-  // Fungsi handleSubmit yang sudah diperbarui dengan logika Firebase
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -41,21 +42,43 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // 1. Buat pengguna baru dengan email dan password
+      // 1. Buat pengguna baru dengan email dan password (di Authentication)
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
       
-      // 2. Simpan nama lengkap ke profil pengguna
-      await updateProfile(userCredential.user, {
+      const user = userCredential.user; // Ambil object user
+
+      // 2. Simpan nama lengkap ke profil (di Authentication)
+      await updateProfile(user, {
         displayName: fullName,
       });
 
-      console.log('Registration successful, user created:', userCredential.user);
+      // 👇 3. BAGIAN BARU: Simpan data pengguna ke Firestore
+      // Buat referensi ke dokumen baru di koleksi 'users'
+      // Kita gunakan 'user.uid' sebagai ID dokumen
+      const userDocRef = doc(db, 'users', user.uid);
+
+      // Definisikan data yang ingin Anda simpan
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        fullName: fullName, // Ambil dari state
+        role: 'customer',  // Role default saat registrasi
+        createdAt: new Date(), // Simpan tanggal pendaftaran
+      };
+
+      // Tulis dokumen ke Firestore
+      await setDoc(userDocRef, userData);
+
+      // --- Akhir Bagian Baru ---
+
+      console.log('Registration successful, Auth user created:', user);
+      console.log('Firestore document created in "users" collection:', userData);
       
-      // 3. Arahkan ke halaman login atau homepage setelah berhasil
+      // 4. Arahkan ke halaman login
       router.push('/auth/login?registered=true');
 
     } catch (error: unknown) {
@@ -66,12 +89,7 @@ export default function Register() {
           case 'auth/email-already-in-use':
             errorMessage = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
             break;
-          case 'auth/weak-password':
-            errorMessage = 'Password terlalu lemah. Gunakan minimal 8 karakter dengan kombinasi huruf dan angka.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Format email tidak valid.';
-            break;
+          // ... (case error lainnya)
           default:
             console.error('Firebase Register Error:', err);
             break;
@@ -107,7 +125,8 @@ export default function Register() {
 
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Full Name Input */}
+          {/* ... sisa form (input) tidak berubah ... */}
+                    {/* Full Name Input */}
           <div>
             <label
               htmlFor="fullName"
