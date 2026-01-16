@@ -88,7 +88,7 @@ export default function Navbar() {
                   <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-[var(--primary)] ring-1 ring-black ring-opacity-5 z-10">
                     <div className="py-1">
                       {['Dapur', 'Ruang Tamu', 'Kamar Tidur', 'Kamar Mandi', "Elektronik", "Dekorasi", "Lainnya"].map((label, index) => {
-                        const slug = label.toLowerCase().replace(/\s+/g, '-');
+                        const slug = label;
                         return (
                           <Link
                             key={index}

@@ -1,206 +1,250 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { db } from '@/lib/firebase'; // Pastikan path import benar
+import { collection, query, where, getDocs, orderBy, DocumentData } from 'firebase/firestore';
 
-// Define a type for our product for type safety
-type Product = {
-  id: number;
+// Tipe data Produk
+interface Product {
+  id: string;
   name: string;
   price: number;
   image: string;
   slug: string;
   category: string;
-  productSold: number;
-};
-
-// Mock data (same as before)
-const mockProducts: Product[] = Array.from({ length: 30 }, (_, i) => ({
-  id: i + 1,
-  name: `Produk Estetik ${i + 1}`,
-  price: Math.floor(Math.random() * (2000000 - 100000 + 1)) + 100000,
-  image: `https://placehold.co/400x400/F3E9DC/333333/png?text=Produk+${i+1}`,
-  slug: `produk-estetik-${i + 1}`,
-  category: 'Ruang Tamu',
-  productSold: Math.floor(Math.random() * 500) + 10,
-}));
+  createdAt: any;
+}
 
 export default function ProductPageClient() {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const [products] = useState<Product[]>(mockProducts);
+  const router = useRouter();
   
-  const [currentPage, setCurrentPage] = useState(() => {
-    const page = searchParams.get('page');
-    return page ? parseInt(page, 10) : 1;
-  });
+  // Ambil parameter dari URL (misal: ?category=dapur&sort=terbaru)
+  const categoryParam = searchParams.get('category');
+  const sortParam = searchParams.get('sort');
 
-  const [sortOption, setSortOption] = useState(() => {
-    const sort = searchParams.get('sort');
-    if (['harga-terendah', 'harga-tertinggi', 'terbaru', 'terlaris'].includes(sort || '')) {
-      return sort as string;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState(categoryParam || 'Semua');
+  const [activeSort, setActiveSort] = useState(sortParam || 'terbaru');
+
+  // Daftar Kategori untuk Filter UI
+  const categories = [
+    { name: 'Semua', slug: 'Semua' },
+    { name: 'Dapur', slug: 'Dapur' },
+    { name: 'Ruang Tamu', slug: 'Ruang Tamu' },
+    { name: 'Kamar Tidur', slug: 'Kamar Tidur' },
+    { name: 'Kamar Mandi', slug: 'Kamar Mandi' },
+    { name: 'Elektronik', slug: 'Elektronik' },
+    { name: 'Dekorasi', slug: 'Dekorasi' },
+    { name: 'Lainnya', slug: 'Lainnya' },
+  ];
+
+  // --- FETCH DATA FIREBASE ---
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const productsRef = collection(db, 'products');
+        let q;
+
+        // 1. Filter Query berdasarkan Kategori
+        if (categoryParam && categoryParam !== 'Semua') {
+            // Perhatikan huruf besar/kecil harus sama dengan di database
+            // Jika di DB 'Dapur', tapi param 'dapur', ini perlu disesuaikan. 
+            // Disini kita asumsi user menyimpan dengan format Capitalize sesuai opsi input.
+            q = query(productsRef, where('category', '==', categoryParam));
+        } else {
+            q = query(productsRef);
+        }
+
+        const snapshot = await getDocs(q);
+        
+        // Mapping data
+        let fetchedProducts = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Product[];
+
+        // 2. Sorting Client-Side (Lebih aman dari error 'Index Required' Firestore untuk kombinasi filter)
+        if (sortParam) {
+            if (sortParam === 'terbaru') {
+                // Sort by date desc
+                fetchedProducts.sort((a, b) => {
+                    const dateA = a.createdAt?.seconds || 0;
+                    const dateB = b.createdAt?.seconds || 0;
+                    return dateB - dateA;
+                });
+            } else if (sortParam === 'terlama') {
+                 fetchedProducts.sort((a, b) => {
+                    const dateA = a.createdAt?.seconds || 0;
+                    const dateB = b.createdAt?.seconds || 0;
+                    return dateA - dateB;
+                });
+            } else if (sortParam === 'termurah') {
+                fetchedProducts.sort((a, b) => a.price - b.price);
+            } else if (sortParam === 'termahal') {
+                fetchedProducts.sort((a, b) => b.price - a.price);
+            }
+        }
+
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    setActiveCategory(categoryParam || 'Semua');
+    setActiveSort(sortParam || 'terbaru');
+    fetchProducts();
+  }, [categoryParam, sortParam]); // Rerun saat URL berubah
+
+  // Fungsi Format Rupiah
+  const formatRupiah = (price: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+  };
+
+  // Handler Ganti Filter (Update URL)
+  const handleFilterChange = (slug: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (slug === 'Semua') {
+        params.delete('category');
+    } else {
+        params.set('category', slug);
     }
-    return 'terbaru';
-  });
-
-  const productsPerPage = 16;
-
-  const sortedProducts = useMemo(() => {
-    const sorted = [...products];
-    switch (sortOption) {
-      case 'terlaris':
-        sorted.sort((a, b) => b.productSold - a.productSold);
-        break;
-      case 'harga-terendah':
-        sorted.sort((a, b) => a.price - b.price);
-        break;
-      case 'harga-tertinggi':
-        sorted.sort((a, b) => b.price - a.price);
-        break;
-      default:
-        sorted.sort((a, b) => b.id - a.id);
-        break;
-    }
-    return sorted;
-  }, [products, sortOption]);
-
-  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
-  const currentProducts = sortedProducts.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  );
-
-  const updateURL = (params: { [key: string]: string }) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    Object.entries(params).forEach(([key, value]) => current.set(key, value));
-    if ('sort' in params && !('page' in params)) current.set('page', '1');
-    const search = current.toString();
-    const query = search ? `?${search}` : "";
-    router.push(`${pathname}${query}`);
+    router.push(`/product?${params.toString()}`);
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSortOption = e.target.value;
-    setSortOption(newSortOption);
-    setCurrentPage(1);
-    updateURL({ sort: newSortOption });
-  };
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      window.scrollTo(0, 0);
-      updateURL({ page: page.toString() });
-    }
-  };
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('sort', e.target.value);
+    router.push(`/product?${params.toString()}`);
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen text-gray-800 font-sans">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        
+        {/* HEADER & FILTER AREA */}
         <header className="mb-8">
-          <div className="flex justify-between items-center border-b pb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Semua Produk</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                <Link href="/" className="hover:text-[#9CAF88]">Home</Link> &gt; <span>Produk</span>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {activeCategory === 'Semua' ? 'Semua Produk' : `Kategori: ${activeCategory}`}
+              </h1>
+              <p className="text-sm text-gray-500 mt-2">
+                <Link href="/" className="hover:text-[#9CAF88] transition-colors">Home</Link> 
+                <span className="mx-2">&gt;</span> 
+                <span className="text-gray-700">Produk</span>
               </p>
             </div>
+
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm font-medium text-gray-700">Urutkan:</label>
-              <select
-                id="sort"
-                value={sortOption}
-                onChange={handleSortChange}
-                className="border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-[#9CAF88] focus:border-transparent"
-              >
-                <option value="terbaru">Terbaru (Reset)</option>
-                <option value="terlaris">Terlaris</option>
-                <option value="harga-terendah">Harga Terendah</option>
-                <option value="harga-tertinggi">Harga Tertinggi</option>
-              </select>
+                <label className="text-sm font-medium text-gray-600">Urutkan:</label>
+                <select 
+                    value={activeSort}
+                    onChange={handleSortChange}
+                    className="border border-gray-300 rounded-md text-sm py-2 px-3 focus:ring-1 focus:ring-[#9CAF88] focus:border-[#9CAF88] outline-none bg-white cursor-pointer"
+                >
+                    <option value="terbaru">Terbaru</option>
+                    <option value="terlama">Terlama</option>
+                    <option value="termurah">Harga Terendah</option>
+                    <option value="termahal">Harga Tertinggi</option>
+                </select>
+            </div>
+          </div>
+
+          {/* Kategori Tags (Horizontal Scroll di Mobile) */}
+          <div className="mt-6 overflow-x-auto hide-scrollbar pb-2">
+            <div className="flex space-x-2">
+                {categories.map((cat) => (
+                    <button
+                        key={cat.slug}
+                        onClick={() => handleFilterChange(cat.slug)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 
+                            ${activeCategory === cat.slug 
+                                ? 'bg-[#9CAF88] text-white shadow-md' 
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                        {cat.name}
+                    </button>
+                ))}
             </div>
           </div>
         </header>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {currentProducts.map((product) => (
-            <Link href={`/product/${product.slug}`} key={product.id} className="group">
-              <div className="bg-gray-50 rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl">
-                <div className="w-full aspect-square overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={400}
-                    height={400}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-md font-semibold text-gray-800 truncate">{product.name}</h3>
-                  <p className="text-lg font-bold text-[#9CAF88] mt-2">{formatCurrency(product.price)}</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {/* PRODUCT GRID */}
+        {loading ? (
+             // Loading State (Bisa pakai Skeleton yg sudah Anda buat di parent, 
+             // tapi disini kita buat simple text/spinner lokal jika perlu transition)
+             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-pulse">
+                {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="bg-gray-100 h-80 rounded-lg"></div>
+                ))}
+             </div>
+        ) : products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                <p className="text-lg font-medium">Tidak ada produk ditemukan.</p>
+                <p className="text-sm mt-1">Coba ganti kategori atau filter lainnya.</p>
+                <button 
+                    onClick={() => handleFilterChange('Semua')}
+                    className="mt-4 text-[#9CAF88] underline hover:text-[#7a8a6a]"
+                >
+                    Lihat Semua Produk
+                </button>
+            </div>
+        ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+                <Link 
+                    key={product.id} 
+                    href={`/product/${product.slug}`} // Pastikan Anda punya page detail produk [slug]
+                    className="group block bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+                >
+                    {/* Gambar */}
+                    <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                        <img 
+                            src={product.image} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {/* Badge Kategori Kecil */}
+                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold text-gray-600 uppercase tracking-wide">
+                            {product.category}
+                        </div>
+                    </div>
 
-        {/* Pagination */}
-        <nav className="flex items-center justify-center mt-12 border-t pt-8">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="flex items-center px-4 py-2 mx-1 text-gray-600 bg-white rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-          >
-            <ChevronLeft size={16} />
-            <span className="ml-2 text-sm">Previous</span>
-          </button>
-
-          <div className="hidden sm:flex">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-4 py-2 mx-1 text-sm rounded-md border ${
-                  currentPage === page
-                    ? 'bg-[#9CAF88] text-white border-[#9CAF88]'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {page}
-              </button>
+                    {/* Info */}
+                    <div className="p-4">
+                        <h3 className="text-gray-900 font-medium text-base line-clamp-2 min-h-[3rem] mb-1 group-hover:text-[#9CAF88] transition-colors">
+                            {product.name}
+                        </h3>
+                        <div className="flex items-center justify-between mt-2">
+                            <p className="text-[#9CAF88] font-bold text-lg">
+                                {formatRupiah(product.price)}
+                            </p>
+                        </div>
+                    </div>
+                </Link>
             ))}
-          </div>
-          
-          <div className="sm:hidden px-4 py-2 text-sm">
-            Page {currentPage} of {totalPages}
-          </div>
-
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="flex items-center px-4 py-2 mx-1 text-gray-600 bg-white rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-          >
-            <span className="mr-2 text-sm">Next</span>
-            <ChevronRight size={16} />
-          </button>
-        </nav>
+            </div>
+        )}
       </div>
+
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }

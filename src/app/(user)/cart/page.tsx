@@ -1,66 +1,73 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Trash2, ShoppingCart } from 'lucide-react';
+import { Trash2, ShoppingCart, Minus, Plus, ArrowRight, Package } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-// Define a type for our cart item for type safety
 type CartItem = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
-  slug: string; // To link back to the product page
+  slug: string;
+  stock: number;
+  weight: number;
 };
 
-// Mock data to simulate a cart with items.
-const mockCartItems: CartItem[] = [
-  {
-    id: 1,
-    name: 'Kursi Kayu Estetik',
-    price: 750000,
-    quantity: 1,
-    image: 'https://placehold.co/150x150/F3E9DC/333333/png',
-    slug: 'kursi-kayu-estetik',
-  },
-  {
-    id: 2,
-    name: 'Lampu Meja Modern',
-    price: 320000,
-    quantity: 2,
-    image: 'https://placehold.co/150x150/9CAF88/FFFFFF/png',
-    slug: 'lampu-meja-modern',
-  },
-];
+export default function CartPage() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(mockCartItems);
-  const [subtotal, setSubtotal] = useState(0);
-
-  // Recalculate subtotal whenever cartItems change
+  // --- LOGIC (Load, Update, Remove) TETAP SAMA ---
   useEffect(() => {
-    const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    setSubtotal(total);
-  }, [cartItems]);
+    const timer = setTimeout(() => {
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          try {
+            const parsedItems = JSON.parse(storedCart);
+            if (Array.isArray(parsedItems)) setCartItems(parsedItems);
+          } catch (error) {
+            localStorage.removeItem('cart');
+          }
+        }
+        setLoading(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Handler to update item quantity
-  const handleQuantityChange = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return; // Quantity cannot be less than 1
-    setCartItems(
-      cartItems.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+  const updateCartStorage = (items: CartItem[]) => {
+    setCartItems(items);
+    if (items.length === 0) localStorage.removeItem('cart');
+    else localStorage.setItem('cart', JSON.stringify(items));
+    window.dispatchEvent(new Event("storage"));
   };
 
-  // Handler to remove an item
-  const handleRemoveItem = (id: number) => {
-    setCartItems(cartItems.filter((item) => item.id !== id));
+  const handleQuantityChange = (id: string, delta: number) => {
+    const updatedItems = cartItems.map((item) => {
+      if (item.id === id) {
+        const newQuantity = item.quantity + delta;
+        if (newQuantity >= 1 && newQuantity <= item.stock) {
+          return { ...item, quantity: newQuantity };
+        }
+      }
+      return item;
+    });
+    updateCartStorage(updatedItems);
   };
 
-  // Function to format currency
+  const handleRemoveItem = (id: string) => {
+    const updatedItems = cartItems.filter((item) => item.id !== id);
+    updateCartStorage(updatedItems);
+  };
+
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
+  const totalWeight = cartItems.reduce((acc, item) => acc + (item.weight || 0) * item.quantity, 0);
+
+  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -69,98 +76,145 @@ export default function Cart() {
     }).format(amount);
   };
 
-  // Empty Cart View
+  if (loading) return <div className="h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#9CAF88]"></div></div>;
+
   if (cartItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center h-[60vh]">
+      <div className="flex flex-col items-center justify-center text-center h-[60vh] px-4">
         <ShoppingCart size={64} className="text-gray-300 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Keranjang Anda Kosong</h1>
-        <p className="text-gray-500 mb-6">Sepertinya Anda belum menambahkan produk apapun.</p>
-        <Link
-          href="/product"
-          className="px-6 py-3 bg-[#9CAF88] text-white font-semibold rounded-lg shadow-md hover:bg-opacity-90 transition-colors"
-        >
-          Lanjutkan Belanja
-        </Link>
+        <h1 className="text-xl font-bold text-gray-800">Keranjang Kosong</h1>
+        <Link href="/product" className="mt-4 text-[#9CAF88] underline">Mulai Belanja</Link>
       </div>
     );
   }
 
-  // Main Cart View
   return (
-    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-center text-[#9CAF88] mb-10">Keranjang Belanja</h1>
-        
+    <div className="bg-gray-50 min-h-screen py-10 px-4 md:px-8 font-sans">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold text-[#9CAF88] mb-6 flex items-center gap-2">
+           <ShoppingCart className="mb-1" /> Keranjang Belanja
+        </h1>
+
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Cart Items List */}
+          {/* --- TABEL PRODUK (KIRI) --- */}
           <div className="w-full lg:w-2/3">
-            <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex flex-col sm:flex-row items-center gap-4 border-b pb-6 last:border-b-0">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    width={100}
-                    height={100}
-                    className="rounded-md object-cover w-24 h-24"
-                  />
-                  <div className="flex-grow text-center sm:text-left">
-                    <Link href={`/product/${item.slug}`} className="text-lg font-semibold text-gray-800 hover:text-[#9CAF88]">
-                      {item.name}
-                    </Link>
-                    <p className="text-gray-600">{formatCurrency(item.price)}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {/* Quantity Selector */}
-                    <div className="flex items-center border rounded-md">
-                      <button onClick={() => handleQuantityChange(item.id, item.quantity - 1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100">-</button>
-                      <span className="px-4 py-1 text-center w-12">{item.quantity}</span>
-                      <button onClick={() => handleQuantityChange(item.id, item.quantity + 1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100">+</button>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              
+              {/* HEADER TABEL (Grid 12 Kolom) */}
+              <div className="hidden sm:grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b text-sm font-semibold text-gray-600">
+                {/* Kolom 1-6: Produk */}
+                <div className="col-span-6 pl-2">Produk</div> 
+                {/* Kolom 7-9: Jumlah (Tengah) */}
+                <div className="col-span-3 text-center">Jumlah</div>
+                {/* Kolom 10-12: Total (Kanan) */}
+                <div className="col-span-3 text-right pr-4">Total</div>
+              </div>
+
+              {/* LIST ITEM */}
+              <div className="divide-y divide-gray-100">
+                {cartItems.map((item) => (
+                    // Container Item
+                    <div key={item.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                        
+                        {/* Grid Wrapper untuk Item */}
+                        <div className="flex flex-col sm:grid sm:grid-cols-12 gap-4 sm:items-center">
+                            
+                            {/* 1. KOLOM PRODUK (Gambar + Teks) - Span 6 */}
+                            <div className="col-span-6 flex items-start gap-4">
+                                {/* Container Gambar (Fixed Size agar tidak meledak) */}
+                                <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                                    <img
+                                        src={item.image || "https://via.placeholder.com/150"}
+                                        alt={item.name}
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150'}
+                                    />
+                                </div>
+                                
+                                {/* Detail Teks */}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base font-bold text-gray-800 line-clamp-2">
+                                        {item.name}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {formatCurrency(item.price)}
+                                    </p>
+                                    <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                                        <Package size={12} />
+                                        <span>{(item.weight || 0) * item.quantity} g</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 2. KOLOM JUMLAH (Quantity Selector) - Span 3 */}
+                            <div className="col-span-3 flex justify-start sm:justify-center items-center mt-2 sm:mt-0">
+                                <div className="flex items-center border border-gray-300 rounded-lg bg-white h-9">
+                                    <button 
+                                        onClick={() => handleQuantityChange(item.id, -1)} 
+                                        disabled={item.quantity <= 1}
+                                        className="w-8 h-full flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-30"
+                                    >
+                                        <Minus size={14} />
+                                    </button>
+                                    <span className="w-10 text-center text-sm font-semibold">{item.quantity}</span>
+                                    <button 
+                                        onClick={() => handleQuantityChange(item.id, 1)} 
+                                        disabled={item.quantity >= item.stock}
+                                        className="w-8 h-full flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-30"
+                                    >
+                                        <Plus size={14} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 3. KOLOM TOTAL & HAPUS - Span 3 */}
+                            <div className="col-span-3 flex items-center justify-between sm:justify-end gap-4 mt-2 sm:mt-0">
+                                <span className="font-bold text-[#9CAF88] text-base">
+                                    {formatCurrency(item.price * item.quantity)}
+                                </span>
+                                <button 
+                                    onClick={() => handleRemoveItem(item.id)} 
+                                    className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
-                    {/* Item Subtotal */}
-                    <p className="font-semibold text-gray-800 w-28 text-right">
-                      {formatCurrency(item.price * item.quantity)}
-                    </p>
-                    {/* Remove Button */}
-                    <button onClick={() => handleRemoveItem(item.id)} className="text-gray-400 hover:text-red-500">
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Order Summary */}
+          {/* --- RINGKASAN ORDER (KANAN) --- */}
           <div className="w-full lg:w-1/3">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-gray-800 border-b pb-4 mb-4">Ringkasan Pesanan</h2>
-              <div className="space-y-3">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8">
+              <h3 className="font-bold text-gray-800 text-lg mb-4 border-b pb-4">Ringkasan</h3>
+              <div className="space-y-3 text-sm text-gray-600 mb-6">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold text-gray-800">{formatCurrency(subtotal)}</span>
+                   <span>Total Item</span>
+                   <span className="font-semibold">{totalItems} Barang</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Estimasi Pengiriman</span>
-                  <span className="font-semibold text-gray-800">Rp 25.000</span>
+                   <span>Berat Total</span>
+                   <span className="font-semibold">{(totalWeight / 1000).toFixed(2)} kg</span>
+                </div>
+                <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t">
+                   <span>Total Harga</span>
+                   <span className="text-[#9CAF88]">{formatCurrency(subtotal)}</span>
                 </div>
               </div>
-              <div className="border-t mt-4 pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-800">Total</span>
-                  <span className="text-lg font-bold text-gray-800">{formatCurrency(subtotal + 25000)}</span>
-                </div>
-              </div>
-              <Link
-                href="/orders"
-                className="block text-center w-full mt-6 py-3 bg-[#9CAF88] text-white font-bold rounded-lg shadow-md hover:bg-opacity-90 transition-colors"
+              <button 
+                onClick={() => router.push('/checkout')}
+                className="w-full py-3 bg-[#9CAF88] text-white font-bold rounded-lg hover:bg-[#869975] transition-all flex justify-center items-center gap-2"
               >
-                Lanjutkan ke Checkout
-              </Link>
+                Checkout <ArrowRight size={18} />
+              </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>
