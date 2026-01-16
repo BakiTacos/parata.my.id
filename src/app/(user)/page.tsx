@@ -32,7 +32,6 @@ export default function Home() {
     { name: 'Kamar Tidur', slug: 'kamar-tidur' },
     { name: 'Kamar Mandi', slug: 'kamar-mandi' },
     { name: 'Elektronik', slug: 'elektronik' },
-    { name: 'Peralatan Masak', slug: 'peralatan-masak' },
     { name: 'Dekorasi', slug: 'dekorasi' },
     { name: 'Lainnya', slug: 'lainnya' },
   ];
