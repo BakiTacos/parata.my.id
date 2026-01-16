@@ -152,8 +152,8 @@ export default function Navbar() {
               </button>
               {productsDropdown && (
                 <div className="pl-4 mt-2 space-y-1">
-                  {['Dapur', 'Ruang Tamu', 'Kamar Tidur', 'Kamar Mandi'].map((label, index) => {
-                    const slug = label.toLowerCase().replace(/\s+/g, '-');
+                  {['Dapur', 'Ruang Tamu', 'Kamar Tidur', 'Kamar Mandi', "Elektronik", "Dekorasi", "Lainnya"].map((label, index) => {
+                    const slug = label;
                     return (
                       <Link
                         key={index}
